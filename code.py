@@ -43,7 +43,7 @@ if user_message:
     # send the user message to the n8n webhook
     try:
         response = requests.post(
-            "http://localhost:5678/webhook-test/7f501118-4087-4f8e-bf90-fe2e31fafcf1",
+            "https://n8n-production-4393c.up.railway.app/webhook/7f501118-4087-4f8e-bf90-fe2e31fafcf1",
             json={"message": user_message}
         )
         data = response.json()
