@@ -1,4 +1,5 @@
 
+
 import streamlit as st
 import requests
 
@@ -33,28 +34,28 @@ for message in st.session_state.messages:
 # create a chat input box
 user_message = st.chat_input()
 
-      
 # if user sends a message
 if user_message:
     with st.chat_message("user"):
         st.markdown(user_message)
-        # append the user message to message history
         st.session_state.messages.append({"role": "user", "content": user_message})
     
     # send the user message to the n8n webhook
-    response = requests.post(
-        "https://n8n-production-4393c.up.railway.app/webhook/7f501118-4087-4f8e-bf90-fe2e31fafcf1",  # replace with your n8n webhook URL
-        json={"message": user_message}
-    )
-    
-    # get the AI response from webhook
-    ai_response = response.json()[0]["output"]
-    
-    # display the AI response in chat
-    with st.chat_message("assistant"):
-        st.markdown(ai_response)
-        # append the AI response to message history
+    try:
+        response = requests.post(
+            "https://n8n-production-4393c.up.railway.app/webhook/7f501118-4087-4f8e-bf90-fe2e31fafcf1",
+            json={"message": user_message}
+        )
+        data = response.json()
+        st.write("Raw response:", data)  # Debugging output
+
+        # Try to extract the AI response safely
+        ai_response = data.get("output") or data.get("data", {}).get("output") or str(data)
+
+        # display the AI response in chat
+        with st.chat_message("assistant"):
+            st.markdown(ai_response)
         st.session_state.messages.append({"role": "assistant", "content": ai_response})
 
-
-
+    except Exception as e:
+        st.error(f"Error: {e}")
