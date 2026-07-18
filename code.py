@@ -39,18 +39,29 @@ if user_message:
     with st.chat_message("user"):
         st.markdown(user_message)
         st.session_state.messages.append({"role": "user", "content": user_message})
-    
-    # send the user message to the n8n webhook
+
     try:
+        # send the user message directly to Ollama (Gemma model)
         response = requests.post(
-            "https://n8n-production-4393c.up.railway.app/webhook/7f501118-4087-4f8e-bf90-fe2e31fafcf1",
-            json={"message": user_message}
+            "https://ollama-production-4e61.up.railway.app/api/generate",
+            json={
+                "model": "gemma:latest",
+                "prompt": user_message
+            }
         )
+
+        # parse Ollama response safely
         data = response.json()
         st.write("Raw response:", data)  # Debugging output
 
-        # Try to extract the AI response safely
-        ai_response = data.get("output") or data.get("data", {}).get("output") or str(data)
+        # Ollama streams chunks, so join them if needed
+        ai_response = ""
+        if isinstance(data, dict) and "response" in data:
+            ai_response = data["response"]
+        elif isinstance(data, list):
+            ai_response = "".join(chunk.get("response", "") for chunk in data)
+        else:
+            ai_response = str(data)
 
         # display the AI response in chat
         with st.chat_message("assistant"):
